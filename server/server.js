@@ -1,30 +1,34 @@
+require("dotenv").config()
 const express = require("express")
 const cors = require("cors")
 const bodyParser = require("body-parser")
 const SpotifyWebApi = require("spotify-web-api-node")
+const lyricsFinder = require("lyrics-finder")
 
 const app = express()
 
 app.use(cors())
 app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.post("/refresh", (req, res) => {
   const refreshToken = req.body.refreshToken
   const spotifyApi = new SpotifyWebApi({
-    redirectUri:  "http://localhost:3000",
-    clientId: "1a4f57adf26642ab827be0fe7d11810d",
-    clientSecret: "6cad8dabb3a649aa91030ef34b88ad20",
+    redirectUri: process.env.REDIRECT_URI,
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
     refreshToken
   })
 
   spotifyApi.refreshAccessToken()
     .then(data => {
       res.json({
-        accessToken: data.body.accessToken,
-        expiresIn: data.body.expiresIn
+        accessToken: data.body.access_token,
+        expiresIn: data.body.expires_in
       })
     })
     .catch(() => {
+      console.log("Server refresh error:", err)
       res.sendStatus(400)
     })
 })
@@ -32,9 +36,9 @@ app.post("/refresh", (req, res) => {
 app.post("/login", (req, res) => {
   const code = req.body.code
   const spotifyApi = new SpotifyWebApi({
-    redirectUri:  "http://localhost:3000",
-    clientId: "1a4f57adf26642ab827be0fe7d11810d",
-    clientSecret: "6cad8dabb3a649aa91030ef34b88ad20"
+    redirectUri: process.env.REDIRECT_URI,
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET
   })
 
   spotifyApi.authorizationCodeGrant(code)
@@ -45,9 +49,15 @@ app.post("/login", (req, res) => {
         expiresIn: data.body.expires_in
       })
     })
-    .catch(error => {
+    .catch((err) => {
+      console.log("Server login error:", err)
       res.sendStatus(400)
     })
+})
+
+app.get("/lyrics", async (req, res) => {
+  const lyrics = await lyricsFinder(req.query.track, req.query.artist) || "No lyrics found"
+  res.json({ lyrics })
 })
 
 app.listen(3001)

@@ -10,7 +10,7 @@ export default function TrackSearchResults({ track, chooseTrack }) {
       onClick={handlePlay}
     >
       <div className="d-flex flex-row">
-        <img src={track.albumUrl} style={{ height: "64px", width: "64px" }} />
+        <img src={track.albumUrl} style={{ height: "64px", width: "64px" }} alt="Album cover" />
         <div className="mx-3">
           <div>{track.title}</div>
           <div className="text-muted">{track.artist}</div>
@@ -20,9 +20,3 @@ export default function TrackSearchResults({ track, chooseTrack }) {
     </div>
   )
 }
-
-// artist: track.artists[0].name,
-// title: track.name,
-// uri: track.uri,
-// albumUrl: smallestAlbumImage.url,
-// duration: duration
